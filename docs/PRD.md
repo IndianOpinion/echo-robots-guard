@@ -16,9 +16,9 @@ the publisher's robots.txt. The site operator cannot honestly tell
 publishers "we honour your robots.txt" on a /bot page, and a publisher who
 writes `User-agent: YourBot` and `Disallow: /` is ignored.
 
-Measured result: an audit of one production importer found that 53 of its
-142 feed rules pointed at paths the publisher's robots.txt disallowed for
-every agent, and that no step of the import consulted robots.txt at all.
+Measured result: an audit of the site's feed rules found that a meaningful
+share pointed at paths the publishers' robots.txt disallowed, which is what
+made a guard at the download step necessary.
 
 Echo exposes one public, documented point before it downloads an article
 page: the filter `echo_filter_dup_check`. It is applied to each item's URL,
