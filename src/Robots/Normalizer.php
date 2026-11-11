@@ -52,7 +52,9 @@ final class Normalizer
 
     private static function encode(string $value): string
     {
-        $hasUnsafe = strspn($value, self::printable()) !== strlen($value);
+        // PHP's strspn() is a nested loop over the mask; a fixed character
+        // class is one linear scan.
+        $hasUnsafe = preg_match('/[^\x21-\x7E]/', $value) === 1;
         if (!$hasUnsafe && !str_contains($value, '%')) {
             return $value;
         }
@@ -68,33 +70,39 @@ final class Normalizer
         }
 
         // Escapes: decode unreserved, uppercase the rest, and encode a "%"
-        // that does not start a valid escape. Octets encoded above are never
-        // unreserved, so a second pass over them is harmless.
-        $parts = explode('%', $value);
-        $out = $parts[0];
-        $count = count($parts);
-        for ($i = 1; $i < $count; $i++) {
-            $part = $parts[$i];
-            $hex = substr($part, 0, 2);
-            if (strlen($hex) === 2 && ctype_xdigit($hex)) {
-                $char = chr((int) hexdec($hex));
-                $out .= (self::isUnreserved($char) ? $char : '%' . strtoupper($hex)) . substr($part, 2);
-            } else {
-                $out .= '%25' . $part;
-            }
-        }
-
-        return $out;
+        // that does not start a valid escape as "%25". One regex pass with a
+        // table lookup; the pattern is fixed and cannot backtrack. Octets
+        // encoded above are never unreserved, so a second pass over them is
+        // harmless.
+        return (string) preg_replace_callback(
+            '/%(?:[0-9A-Fa-f]{2})?/',
+            static fn (array $m): string => self::escapes()[$m[0]] ?? '%25',
+            $value
+        );
     }
 
     /**
-     * Printable ASCII, 0x21 to 0x7E: the octets that are never encoded.
+     * Every "%xx" escape, in any case, mapped to its normal form: the
+     * character itself when unreserved, else "%XX" in upper case.
+     *
+     * @return array<string, string>
      */
-    private static function printable(): string
+    private static function escapes(): array
     {
-        static $set = null;
+        static $map = null;
+        if ($map === null) {
+            $map = [];
+            for ($byte = 0; $byte < 256; $byte++) {
+                $char = chr($byte);
+                $upper = sprintf('%02X', $byte);
+                $normal = self::isUnreserved($char) ? $char : '%' . $upper;
+                foreach (array_unique([$upper, strtolower($upper), ucfirst(strtolower($upper)), strtolower($upper[0]) . $upper[1]]) as $hex) {
+                    $map['%' . $hex] = $normal;
+                }
+            }
+        }
 
-        return $set ??= implode('', array_map('chr', range(0x21, 0x7E)));
+        return $map;
     }
 
     private static function isUnreserved(string $char): bool
