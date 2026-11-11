@@ -69,19 +69,26 @@ class Parser
         $dropped = 0;
         $misspellings = [];
 
-        // One pass in C finds every "key: value" line. Line endings are
-        // unified first (P1). A key holds no "#" or ":"; the value stops at
-        // "#" (P3); spaces and tabs around both are dropped (P4). Lines with
-        // no colon before a "#" never match, so they are ignored (P6).
+        // Line endings are unified first (P1). Each line is then read with
+        // plain string functions: the comment is cut at "#" (P3), the key is
+        // everything before the first ":", and spaces and tabs around both
+        // are dropped (P4). A line with no colon before a "#" is ignored
+        // (P6). No regular expression runs over the body, so no line, however
+        // long or odd, can exhaust the PCRE backtrack limit and silently drop
+        // the rest of the file (P17).
         $body = str_replace(["\r\n", "\r"], "\n", $body);
-        preg_match_all(
-            '/^[ \t]*([^:#\n]*?)[ \t]*:[ \t]*([^#\n]*?)[ \t]*(?:#[^\n]*)?$/m',
-            $body,
-            $matches,
-            PREG_SET_ORDER
-        );
 
-        foreach ($matches as [, $key, $value]) {
+        foreach (explode("\n", $body) as $line) {
+            $hash = strpos($line, '#');
+            if ($hash !== false) {
+                $line = substr($line, 0, $hash);
+            }
+            $colon = strpos($line, ':');
+            if ($colon === false) {
+                continue;
+            }
+            $key = trim(substr($line, 0, $colon), " \t");
+            $value = trim(substr($line, $colon + 1), " \t");
             $key = strtolower($key);
 
             if (isset(self::MISSPELLINGS[$key])) {

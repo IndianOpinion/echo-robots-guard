@@ -311,4 +311,21 @@ final class ParserTest extends TestCase
         self::assertEquals($file->toArray(), $copy->toArray());
         self::assertFalse(self::allowed($copy, '/second'));
     }
+
+    public function testLongWhitespaceLineDoesNotDropLaterRules(): void
+    {
+        // A regex scan of the body hit the PCRE backtrack limit on a line like
+        // this and silently returned no rules after it (P17).
+        $body = "User-agent: *\nDisallow: /early\nSitemap: https://x.example/s.xml"
+            . str_repeat(' ', 20000) . "x\nDisallow: /pad" . str_repeat("\t ", 20000) . "\nDisallow: /late\n";
+        $file = (new Parser())->parse($body);
+        self::assertSame(['/early', '/pad', '/late'], self::patterns($file, 0));
+        self::assertFalse(self::allowed($file, '/late/1'));
+    }
+
+    public function testKeyAndValueSplitAtFirstColonAndHash(): void
+    {
+        $file = (new Parser())->parse("User-agent:ExampleBot\n  Disallow :\t/a:b?c=1 # note: x\n:/nokey\nDisallow: #/c\n");
+        self::assertSame(['/a:b?c=1'], self::patterns($file, 0));
+    }
 }
