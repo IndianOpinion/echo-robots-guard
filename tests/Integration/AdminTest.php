@@ -196,4 +196,16 @@ final class AdminTest extends TestCase
         $texts = implode("\n", array_column($this->plugin->admin->notices(), 'text'));
         self::assertStringContainsString('No Echo calls seen in the last 7 days', $texts);
     }
+
+    public function testT104RejectedValuesShownAfterRedirect(): void
+    {
+        $notices = $this->plugin->admin->resultNotices(['updated' => '1', 'rejected' => 'token,ttl,<script>']);
+        self::assertSame(['success', 'error', 'error'], array_column($notices, 'type'));
+        $texts = implode("\n", array_column($notices, 'text'));
+        self::assertStringContainsString('"token" was not valid', $texts);
+        self::assertStringContainsString('"ttl" was not valid', $texts);
+        self::assertStringNotContainsString('script', $texts);
+        self::assertSame('success', $this->plugin->admin->resultNotices(['cleared' => '1'])[0]['type']);
+        self::assertSame([], $this->plugin->admin->resultNotices([]));
+    }
 }

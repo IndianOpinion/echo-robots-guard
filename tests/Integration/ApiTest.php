@@ -197,4 +197,9 @@ final class ApiTest extends TestCase
         self::assertCount(30, $stored['days']);
         self::assertSame(35, $stored['total']['api']['checked']);
     }
+
+    public function testFilterReturnsNullForAnInvalidTokenInsteadOfThrowing(): void
+    {
+        self::assertNull(apply_filters('echo_robots_guard_may_fetch', null, 'https://a.example/blocked', 'Bad Token!'));
+    }
 }

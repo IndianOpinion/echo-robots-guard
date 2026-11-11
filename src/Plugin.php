@@ -113,7 +113,14 @@ final class Plugin
     public function init(): void
     {
         load_plugin_textdomain('echo-robots-guard', false, dirname(plugin_basename(ECHO_ROBOTS_GUARD_FILE)) . '/languages');
-        if (!wp_next_scheduled(self::PURGE_EVENT)) {
+        $this->schedulePurge();
+    }
+
+    public function schedulePurge(): void
+    {
+        // The cache table is network-wide, so one daily purge is enough: it
+        // runs from the main site only, not from every site of a network.
+        if ((!function_exists('is_main_site') || is_main_site()) && !wp_next_scheduled(self::PURGE_EVENT)) {
             wp_schedule_event($this->clock->now() + 3600, 'daily', self::PURGE_EVENT);
         }
     }
@@ -135,9 +142,14 @@ final class Plugin
         if (!is_string($url)) {
             return $default;
         }
-        $decision = $this->mayFetch($url, is_string($token) ? $token : null);
+        $token = is_string($token) ? $token : null;
+        if ($token !== null && !Settings::isValidToken($token)) {
+            // A filter must not throw into its caller: an invalid token is
+            // "not checked" here. may_fetch() throws for it instead.
+            return null;
+        }
 
-        return $decision->allowed;
+        return $this->mayFetch($url, $token)->allowed;
     }
 
     /**

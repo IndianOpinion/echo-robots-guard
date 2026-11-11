@@ -149,6 +149,36 @@ final class AdminPage
         return $notices;
     }
 
+    /**
+     * Notices for the result of the last save or clear, read from the query
+     * string of the redirect (T104). Only known setting names are shown.
+     *
+     * @param array<mixed> $query Unslashed $_GET.
+     * @return list<array{type: string, text: string}>
+     */
+    public function resultNotices(array $query): array
+    {
+        $notices = [];
+        if (($query['updated'] ?? '') === '1') {
+            $notices[] = ['type' => 'success', 'text' => __('Settings saved.', 'echo-robots-guard')];
+        }
+        if (isset($query['rejected']) && is_string($query['rejected'])) {
+            $known = array_keys(Settings::FILTERS);
+            foreach (array_intersect(explode(',', $query['rejected']), $known) as $key) {
+                $notices[] = ['type' => 'error', 'text' => sprintf(
+                    /* translators: %s: setting name */
+                    __('The value given for "%s" was not valid and was not saved; the previous value is kept.', 'echo-robots-guard'),
+                    $key
+                )];
+            }
+        }
+        if (($query['cleared'] ?? '') === '1') {
+            $notices[] = ['type' => 'success', 'text' => __('robots.txt cache cleared.', 'echo-robots-guard')];
+        }
+
+        return $notices;
+    }
+
     public function globalNotice(): void
     {
         if (!current_user_can('manage_options') || $this->settings->isConfirmed()) {
@@ -160,7 +190,7 @@ final class AdminPage
         }
         printf(
             '<div class="notice notice-warning"><p>%s <a href="%s">%s</a></p></div>',
-            esc_html__('Echo Robots Guard is enforcing robots.txt with a product token derived from the site title.', 'echo-robots-guard'),
+            esc_html__('Echo Robots Guard is using a product token derived from the site title.', 'echo-robots-guard'),
             esc_url(add_query_arg(['page' => self::SLUG], admin_url('tools.php'))),
             esc_html__('Confirm or change the token.', 'echo-robots-guard')
         );
@@ -196,7 +226,11 @@ final class AdminPage
 
         echo '<div class="wrap"><h1>' . esc_html__('Echo Robots Guard', 'echo-robots-guard') . '</h1>';
 
-        foreach ($this->notices() as $notice) {
+        // Read-only display of the redirect after a save or clear; the
+        // handlers checked the nonce before they redirected here.
+        $query = wp_unslash($_GET); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $notices = array_merge($this->resultNotices($query), $this->notices());
+        foreach ($notices as $notice) {
             printf(
                 '<div class="notice notice-%s"><p>%s</p></div>',
                 esc_attr($notice['type']),

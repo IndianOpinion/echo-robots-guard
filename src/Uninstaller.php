@@ -26,6 +26,9 @@ final class Uninstaller
             delete_option(Settings::OPTION);
             delete_option(Recorder::COUNTERS);
             delete_option(Recorder::LOG);
+            // Each site has its own cron list. The purge is scheduled on the
+            // main site, but clear it everywhere in case the main site changed.
+            wp_clear_scheduled_hook(Plugin::PURGE_EVENT);
             if ($switched) {
                 restore_current_blog();
             }
@@ -34,7 +37,6 @@ final class Uninstaller
         if (function_exists('wp_cache_supports') && wp_cache_supports('flush_group')) {
             wp_cache_flush_group(Cache::GROUP);
         }
-        wp_clear_scheduled_hook(Plugin::PURGE_EVENT);
         TableStore::drop();
     }
 }

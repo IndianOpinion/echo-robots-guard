@@ -140,6 +140,11 @@ function is_multisite(): bool
     return WpStub::$multisite;
 }
 
+function is_main_site(): bool
+{
+    return !WpStub::$multisite || WpStub::$blog === 1;
+}
+
 function get_current_blog_id(): int
 {
     return WpStub::$blog;

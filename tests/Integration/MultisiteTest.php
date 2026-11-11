@@ -161,4 +161,15 @@ final class MultisiteTest extends TestCase
         self::assertArrayNotHasKey('echo_robots_guard', \WpStub::$cache);
         self::assertArrayNotHasKey(Plugin::PURGE_EVENT, \WpStub::$scheduled);
     }
+
+    public function testPurgeScheduledFromTheMainSiteOnly(): void
+    {
+        unset(\WpStub::$scheduled[Plugin::PURGE_EVENT]);
+        $this->onSite(2, function (): void {
+            $this->plugin->schedulePurge();
+        });
+        self::assertArrayNotHasKey(Plugin::PURGE_EVENT, \WpStub::$scheduled);
+        $this->plugin->schedulePurge();
+        self::assertArrayHasKey(Plugin::PURGE_EVENT, \WpStub::$scheduled);
+    }
 }
