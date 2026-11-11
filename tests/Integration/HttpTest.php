@@ -305,4 +305,20 @@ final class HttpTest extends TestCase
         self::assertCount(1, $this->logLines);
         self::assertStringStartsWith('[echo-robots-guard] https://a.example/robots.txt: fetch error "5xx"', $this->logLines[0]);
     }
+
+    public function testIpv6FormsOfInternalAddressesRefused(): void
+    {
+        foreach (['http://[::ffff:127.0.0.1]/x', 'http://[::ffff:a00:5]/x', 'http://[64:ff9b::a9fe:a9fe]/x', 'http://[::127.0.0.1]/x'] as $url) {
+            self::assertSame(Decision::UNREACHABLE, $this->plugin->mayFetch($url)->reason, $url);
+        }
+        self::assertSame([], \WpStub::$requests);
+    }
+
+    public function testUserinfoInRedirectNotSent(): void
+    {
+        \WpStub::respond('https://a.example/robots.txt', 301, '', ['location' => 'https://user:secret@b.example/robots.txt']);
+        \WpStub::respond('https://b.example/robots.txt', 200, "User-agent: *\nDisallow: /x\n");
+        self::assertFalse($this->plugin->mayFetch('https://a.example/x')->allowed);
+        self::assertSame(['https://a.example/robots.txt', 'https://b.example/robots.txt'], \WpStub::requestedUrls());
+    }
 }

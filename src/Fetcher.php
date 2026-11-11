@@ -62,7 +62,8 @@ class Fetcher
                     // RFC 9309 2.3.1.2: past the limit, MAY assume unavailable (H6).
                     return FetchResult::unavailable($status, $redirects, 'redirect_limit');
                 }
-                $url = self::resolve($url, $location);
+                // Userinfo in a Location header is never sent on (H3, H13).
+                $url = (string) preg_replace('#^(https?://)[^/?\#@]*@#i', '$1', self::resolve($url, $location));
                 $next = Target::fromUrl($url);
                 if ($next === null) {
                     return FetchResult::unreachable($status, 'redirect_scheme', $redirects + 1);
@@ -99,6 +100,17 @@ class Fetcher
         if ($ip === null) {
             return true;
         }
+        $embedded = self::embeddedIpv4($ip);
+        if ($embedded !== null && !self::isSafeIp($embedded)) {
+            // ::ffff:127.0.0.1, ::127.0.0.1 and 64:ff9b::7f00:1 all reach 127.0.0.1.
+            return false;
+        }
+
+        return self::isSafeIp($ip);
+    }
+
+    private static function isSafeIp(string $ip): bool
+    {
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
             return false;
         }
@@ -110,6 +122,31 @@ class Fetcher
             && !str_starts_with($lower, 'fc')
             && !str_starts_with($lower, 'fd')
             && $lower !== '::1';
+    }
+
+    /**
+     * The IPv4 address inside an IPv4-mapped (::ffff:0:0/96), IPv4-compatible
+     * (::/96) or NAT64 (64:ff9b::/96) IPv6 address, or null.
+     */
+    private static function embeddedIpv4(string $ip): ?string
+    {
+        if (!str_contains($ip, ':')) {
+            return null;
+        }
+        $packed = inet_pton($ip);
+        if (!is_string($packed) || strlen($packed) !== 16) {
+            return null;
+        }
+        $prefix = substr($packed, 0, 12);
+        $mapped = str_repeat("\0", 10) . "\xff\xff";
+        $compatible = str_repeat("\0", 12);
+        $nat64 = "\x00\x64\xff\x9b" . str_repeat("\0", 8);
+        if ($prefix !== $mapped && $prefix !== $compatible && $prefix !== $nat64) {
+            return null;
+        }
+        $v4 = inet_ntop(substr($packed, 12));
+
+        return is_string($v4) ? $v4 : null;
     }
 
     /**
