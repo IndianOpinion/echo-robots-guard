@@ -1,0 +1,2 @@
+User-agent: ExampleBot/2.1 (+https://x.example)
+Disallow: /versioned

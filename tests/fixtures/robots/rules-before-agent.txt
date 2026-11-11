@@ -1,0 +1,3 @@
+Disallow: /early
+User-agent: ExampleBot
+Disallow: /late

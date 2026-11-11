@@ -1,0 +1,8 @@
+User-agent: ExampleBot
+Disallow: /one
+<<<garbage>>>
+:::
+Disallow: /two
+= = =
+: no key
+Disallow: /three

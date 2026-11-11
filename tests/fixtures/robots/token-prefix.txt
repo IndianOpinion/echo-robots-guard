@@ -1,0 +1,5 @@
+User-agent: Example
+Disallow: /
+
+User-agent: ExampleBotNews
+Disallow: /

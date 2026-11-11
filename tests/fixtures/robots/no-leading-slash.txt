@@ -1,0 +1,3 @@
+User-agent: ExampleBot
+Disallow: private
+Disallow: *.pdf

@@ -1,0 +1,6 @@
+User-agent: ExampleBot
+Disallow: /blocked
+Disallow: /*?a=1&b=2
+
+User-agent: OtherBot
+Disallow: /other

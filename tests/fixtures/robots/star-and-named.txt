@@ -1,0 +1,5 @@
+User-agent: ExampleBot
+Disallow: /named
+
+User-agent: *
+Disallow: /star

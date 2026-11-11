@@ -1,0 +1,5 @@
+User-agent: ExampleBot
+Disallow: /good
+Disallow: /badÿþpath
+Garbage Ã( line: here
+Disallow: /cafÃ©

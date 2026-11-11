@@ -1,0 +1,3 @@
+USER-AGENT: ExampleBot
+disALLOW: /upper
+ALLOW: /upper/ok

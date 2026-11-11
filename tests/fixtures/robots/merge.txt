@@ -1,0 +1,8 @@
+User-agent: ExampleBot
+Disallow: /first
+
+User-agent: OtherBot
+Disallow: /other
+
+User-agent: ExampleBot
+Disallow: /second

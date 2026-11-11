@@ -1,0 +1,4 @@
+User-agent: ExampleBot
+Disallow: /lfUser-agent: OtherBotDisallow: /cr
+User-agent: *
+Disallow: /crlf
