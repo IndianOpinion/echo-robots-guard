@@ -1,0 +1,5 @@
+# Full-line comment: Disallow: /commented
+User-agent: ExampleBot # trailing comment
+Disallow: /private # keep out
+# Disallow: /also-commented
+Allow: /private/ok#no space before hash

@@ -1,0 +1,5 @@
+<!doctype html>
+<html lang="en">
+<head><title>Welcome</title><meta name="viewport" content="width=device-width"></head>
+<body><p>Home page served for every path. Style: color: red;</p></body>
+</html>

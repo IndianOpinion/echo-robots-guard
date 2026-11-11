@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<ruleset name="echo-robots-guard">
+    <description>PSR-12, with the few allowances a WordPress plugin needs.</description>
+
+    <file>src</file>
+    <file>tests</file>
+    <file>examples</file>
+    <file>echo-robots-guard.php</file>
+    <file>uninstall.php</file>
+    <file>mu-loader</file>
+
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+
+    <rule ref="PSR12"/>
+
+    <!-- Translatable sentences are long; splitting them hurts translators. -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="160"/>
+            <property name="absoluteLineLimit" value="0"/>
+        </properties>
+        <exclude-pattern>src/Statement.php</exclude-pattern>
+        <exclude-pattern>src/Admin/AdminPage.php</exclude-pattern>
+        <exclude-pattern>echo-robots-guard.php</exclude-pattern>
+    </rule>
+
+    <!-- The plugin entry file and the examples define and run by design. -->
+    <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
+        <exclude-pattern>echo-robots-guard.php</exclude-pattern>
+        <exclude-pattern>examples/*</exclude-pattern>
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+
+    <!-- The stub layer mirrors WordPress names, which are snake_case. -->
+    <rule ref="PSR1.Methods.CamelCapsMethodName.NotCamelCaps">
+        <exclude-pattern>tests/stubs/*</exclude-pattern>
+    </rule>
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>tests/stubs/*</exclude-pattern>
+    </rule>
+    <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
+        <exclude-pattern>tests/stubs/*</exclude-pattern>
+    </rule>
+    <rule ref="Squiz.Classes.ValidClassName.NotCamelCaps">
+        <exclude-pattern>tests/stubs/*</exclude-pattern>
+    </rule>
+</ruleset>

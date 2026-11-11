@@ -1,0 +1,5 @@
+User-agent: ExampleBot
+User-agent: OtherBot
+Disallow: /both
+User-agent: ThirdBot
+Disallow: /third

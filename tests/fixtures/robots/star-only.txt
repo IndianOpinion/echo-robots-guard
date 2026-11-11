@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /star1
+
+User-agent: *
+Disallow: /star2

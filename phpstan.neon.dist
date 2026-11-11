@@ -1,0 +1,11 @@
+parameters:
+    level: 8
+    paths:
+        - src
+        - echo-robots-guard.php
+        - uninstall.php
+        - mu-loader
+    scanFiles:
+        - vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+    bootstrapFiles:
+        - tests/phpstan-bootstrap.php

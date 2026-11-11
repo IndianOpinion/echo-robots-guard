@@ -1,0 +1,4 @@
+User-agent: ExampleBot
+Dissallow: /misspelt
+Disalow: /also
+Alow: /misspelt/ok

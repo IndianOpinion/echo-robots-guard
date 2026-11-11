@@ -1,0 +1,8 @@
+User-agent: ExampleBot
+Sitemap: https://a.example/sitemap.xml
+User-agent: OtherBot
+Crawl-delay: 10
+Disallow: /shared
+Host: a.example
+Disallow: /shared2
+Clean-param: ref /x
