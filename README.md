@@ -247,7 +247,7 @@ The robots.txt fetch sends `User-Agent: <token>/<version> (+<bot page URL>)`.
   fetch timeout. The per-request fetch cap (20 by default) bounds it; for
   runs with many new hosts, a shorter timeout helps. Items past the cap use
   a stale copy if one is held, else the failure policy, and are checked
-  properly on a later run.
+  properly on a later run. WP-CLI `check` is not capped.
 - **Counters are best effort.** Two requests that flush at the same moment
   can lose a few increments. Decisions are never affected.
 - **The /bot page.** WordPress may answer an unknown `/bot` with a 301 to an

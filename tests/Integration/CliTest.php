@@ -142,4 +142,15 @@ final class CliTest extends TestCase
         $this->expectException(\WpCliExit::class);
         $this->cli()->cache(['explode'], []);
     }
+
+    public function testCheckIsNotLimitedByTheFetchCap(): void
+    {
+        $this->configure(['mode' => 'enforce', 'max_fetches' => 1]);
+        foreach (['b', 'c', 'd'] as $host) {
+            $this->robotsBody("https://{$host}.example", "User-agent: *\nDisallow: /no\n");
+        }
+        $this->cli()->check(['https://b.example/ok', 'https://c.example/ok', 'https://d.example/ok'], []);
+        self::assertSame(['allowed', 'allowed', 'allowed'], array_column($this->lastRows(), 'result'));
+        self::assertSame(['no_rule', 'no_rule', 'no_rule'], array_column($this->lastRows(), 'reason'));
+    }
 }

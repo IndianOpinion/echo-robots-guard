@@ -188,6 +188,8 @@ item whose origin would need a fetch past the cap:
 Nothing is cached for it, so the next request fetches that origin normally.
 The cap bounds the worst-case added time per request at
 `cap x timeout` (160 s with the defaults). Counted as `fetch_cap_reached`.
+WP-CLI `check` lifts the cap for its own run, because the operator asked
+for every URL listed there (L3).
 
 ### 7. Common misspellings of Disallow and Allow are accepted and logged
 
@@ -250,8 +252,11 @@ apart, and what the build does:
 
 ## Performance notes
 
-- Parsing is one `preg_match_all` over the body (line endings unified
-  first), then a PHP loop over the matched `key: value` pairs. Percent
+- Parsing unifies line endings, then reads each line with `strpos`,
+  `substr` and `trim`. No regular expression runs over the body: an early
+  build used one `preg_match_all`, and a single line padded with thousands
+  of spaces exhausted the PCRE backtrack limit and silently dropped every
+  rule after it. Percent
   normalisation takes a fast path when a value holds no `%` and only
   printable ASCII.
 - Each rule compiles its pattern once (split on `*`, anchor flag). The

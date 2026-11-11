@@ -90,6 +90,9 @@ final class Command
         $fresh = !empty($assoc['fresh']);
         $format = isset($assoc['format']) && is_string($assoc['format']) ? $assoc['format'] : 'table';
 
+        // The operator asked for these URLs; the import-run fetch cap does not apply.
+        $this->guard->liftFetchCap();
+
         $rows = [];
         $disallowed = false;
         foreach ($urls as $url) {

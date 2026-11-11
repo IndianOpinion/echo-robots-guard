@@ -28,6 +28,8 @@ class Guard
 
     private int $fetchCount = 0;
 
+    private bool $capLifted = false;
+
     public function __construct(
         private Settings $settings,
         private Cache $cache,
@@ -75,6 +77,16 @@ class Guard
     }
 
     /**
+     * Turns off the per-request fetch cap for the rest of this request. For
+     * WP-CLI "check", where the operator asked for every URL to be checked
+     * (L3): an audit of many feeds must not report "fetch_cap" for most.
+     */
+    public function liftFetchCap(): void
+    {
+        $this->capLifted = true;
+    }
+
+    /**
      * Forget per-request state. The plugin never needs this; long-running
      * workers and tests do.
      */
@@ -112,7 +124,7 @@ class Guard
             $this->recorder->count($context, 'cache_hits');
         } elseif ($entry === null) {
             $this->recorder->count($context, 'cache_misses');
-            if ($this->fetchCount >= $this->settings->maxFetches()) {
+            if (!$this->capLifted && $this->fetchCount >= $this->settings->maxFetches()) {
                 $this->recorder->count($context, 'fetch_cap_reached');
                 if ($previous !== null && $previous->hasStaleCopy($now, $this->settings->staleWindow())) {
                     return $this->fromRules($url, $previous, $token, $context, 'stale', Decision::STALE_COPY);
