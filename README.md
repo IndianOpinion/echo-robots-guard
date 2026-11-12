@@ -292,3 +292,7 @@ fetch for each origin your importer reads.
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, tests and pull request rules.
